@@ -7,9 +7,7 @@ import sys
 
 
 def get_output(*args):
-    return subprocess.check_output(
-        args, universal_newlines=True
-    ).strip()
+    return subprocess.check_output(args, universal_newlines=True).strip()
 
 
 def sh(*args):
@@ -17,7 +15,9 @@ def sh(*args):
 
 
 def compile_string_decl_regex(var_name):
-    return re.compile(r'^({}\s*=\s*)([\'"])(.*?)\2$'.format(var_name), re.MULTILINE)
+    return re.compile(
+        r'^({}\s*=\s*)([\'"])(.*?)\2$'.format(var_name), re.MULTILINE
+    )
 
 
 VERSION_RE = compile_string_decl_regex('__version__')
@@ -32,16 +32,21 @@ def get_file_version(version_file):
 
 
 def get_version_filename():
-    return find_string_declaration('setup.py', compile_string_decl_regex('VERSION_FILE'))
+    return find_string_declaration(
+        'setup.py', compile_string_decl_regex('VERSION_FILE')
+    )
 
 
 def find_string_declaration(python_file, string_decl_re):
     with io.open(python_file, "rt", encoding="utf8") as f:
         return string_decl_re.search(f.read()).group(3)
 
+
 def replace_version(version_file, new_version):
     with io.open(version_file, "rt", encoding="utf8") as f:
-        new_content = VERSION_RE.sub(r'\g<1>\g<2>{}\g<2>'.format(new_version), f.read())
+        new_content = VERSION_RE.sub(
+            r'\g<1>\g<2>{}\g<2>'.format(new_version), f.read()
+        )
 
     with io.open(version_file, "wt", encoding="utf8") as f:
         f.write(new_content)
@@ -51,8 +56,13 @@ def main(version):
     if version.startswith('v'):
         version = version[1:]
     assert re.match('^[\d.]+$', version), 'Version should be in format 1.2.3'
-    assert get_output('git', 'symbolic-ref', 'HEAD') == 'refs/heads/master', 'Must be on master branch'
-    assert len(get_output('git', 'status', '-uno', '--porcelain=2').splitlines()) == 0, 'Working directory is not clean'
+    assert (
+        get_output('git', 'symbolic-ref', 'HEAD') == 'refs/heads/master'
+    ), 'Must be on master branch'
+    assert (
+        len(get_output('git', 'status', '-uno', '--porcelain=2').splitlines())
+        == 0
+    ), 'Working directory is not clean'
     sh('git', 'pull')
     ver_file = get_version_filename()
     assert ver_file, 'No VERSION_FILE defined in setup.py'
@@ -62,8 +72,12 @@ def main(version):
 
     replace_version(ver_file, version)
 
-    assert get_file_version(ver_file) == version, 'File version does not match after update'
-    assert get_setup_version() == get_file_version(ver_file), 'Setup.py version does not match after update'
+    assert (
+        get_file_version(ver_file) == version
+    ), 'File version does not match after update'
+    assert get_setup_version() == get_file_version(
+        ver_file
+    ), 'Setup.py version does not match after update'
     sh('git', 'add', ver_file)
     sh('git', 'commit', '-m', 'Version bump to v{}'.format(version))
     tag = 'v{}'.format(version)
