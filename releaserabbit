@@ -52,6 +52,16 @@ def replace_version(version_file, new_version):
         f.write(new_content)
 
 
+def tag(version, message):
+    sh('git', 'tag', '-a', 'v{}'.format(version), '-m', message)
+
+
+def build_and_upload():
+    sh('python', 'setup.py', 'sdist', 'upload')
+    sh('git', 'push')
+    sh('git', 'push', '--tags')
+
+
 def main(version):
     if version.startswith('v'):
         version = version[1:]
@@ -78,14 +88,14 @@ def main(version):
     assert get_setup_version() == get_file_version(
         ver_file
     ), 'Setup.py version does not match after update'
+    message = 'Version bump to v{}'.format(version)
+
     sh('git', 'add', ver_file)
-    sh('git', 'commit', '-m', 'Version bump to v{}'.format(version))
-    tag = 'v{}'.format(version)
-    sh('git', 'tag', tag)
-    sh('python', 'setup.py', 'sdist', 'upload')
-    sh('git', 'push', '')
-    sh('git', 'push', '--tags')
-    sh('hub', 'release', 'create', '-m', tag, tag)
+    sh('git', 'commit', '-m', message)
+
+    tag(version, message)
+    build_and_upload()
+
     print('Updated version to {}.'.format(version))
 
 
