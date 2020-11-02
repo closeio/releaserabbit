@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
-from __future__ import unicode_literals
 import io
 import re
 import subprocess
 import sys
+
+__version__ = '0.0.1'
 
 
 def get_output(*args):
@@ -75,7 +75,7 @@ def build_and_upload():
     sh('git', 'push', '--tags')
 
 
-def main(version):
+def release_with_version(version):
     if version.startswith('v'):
         version = version[1:]
     assert re.match('^[\d.]+$', version), 'Version should be in format 1.2.3'
@@ -112,12 +112,16 @@ def main(version):
     print('Updated version to {}.'.format(version))
 
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) != 2:
         print('Usage: {} new_version'.format(sys.argv[0]))
         sys.exit(1)
     try:
-        main(sys.argv[1])
+        release_with_version(sys.argv[1])
     except AssertionError as e:
         print(e.args[0])
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
