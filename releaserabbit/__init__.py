@@ -78,7 +78,7 @@ def build_and_upload():
 def release_with_version(version):
     if version.startswith('v'):
         version = version[1:]
-    assert re.match('^[\d.]+$', version), 'Version should be in format 1.2.3'
+    assert re.match(r'^[\d.]+$', version), 'Version should be in format 1.2.3'
     assert (
         get_output('git', 'symbolic-ref', 'HEAD') == 'refs/heads/master'
     ), 'Must be on master branch'
