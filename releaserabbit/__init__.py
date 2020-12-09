@@ -2,6 +2,8 @@ import io
 import re
 import subprocess
 import sys
+from enum import Enum
+from typing import Tuple
 
 __version__ = '0.0.2'
 
@@ -75,10 +77,7 @@ def build_and_upload():
     sh('git', 'push', '--tags')
 
 
-def release_with_version(version):
-    if version.startswith('v'):
-        version = version[1:]
-    assert re.match(r'^[\d.]+$', version), 'Version should be in format 1.2.3'
+def prepare() -> Tuple[str, VersionFile]:
     assert (
         get_output('git', 'symbolic-ref', 'HEAD') == 'refs/heads/master'
     ), 'Must be on master branch'
@@ -91,7 +90,56 @@ def release_with_version(version):
     assert ver_file, 'No VERSION_FILE defined in setup.py'
     old_file_version = ver_file.get_version()
     assert get_setup_version() == old_file_version, 'Version does not match'
-    assert old_file_version != version, 'Already on {}'.format(version)
+    return old_file_version, ver_file
+
+
+VERSION_SEPARATOR = '.'
+
+
+class VersionComponent(Enum):
+    Major = 'major'
+    Minor = 'minor'
+    Patch = 'patch'
+
+    def bump(self, old_version: str) -> str:
+        parts = [int(part) for part in old_version.split(VERSION_SEPARATOR)]
+        index = self._index
+        new_parts = (
+            parts[:index]
+            + [parts[index] + 1]
+            + ([0] * (len(parts) - index - 1))
+        )
+        return VERSION_SEPARATOR.join(str(part) for part in new_parts)
+
+    @property
+    def _index(self) -> int:
+        return list(VersionComponent).index(self)
+
+
+FORMAT_HELP = 'Version should be in format 1.2.3, major, minor, or patch'
+
+
+def get_new_version(old_version: str, requested_version: str) -> str:
+    if re.match(r'^[\d.]+$', requested_version):
+        return requested_version
+
+    try:
+        component = VersionComponent(requested_version)
+    except ValueError as e:
+        raise ValueError(FORMAT_HELP) from e
+
+    return component.bump(old_version)
+
+
+def release_with_version(requested_version):
+    if requested_version.startswith('v'):
+        requested_version = requested_version[1:]
+    old_version, ver_file = prepare()
+    assert old_version != requested_version, 'Already on {}'.format(
+        requested_version
+    )
+
+    version = get_new_version(old_version, requested_version)
 
     ver_file.replace_version(version)
 
