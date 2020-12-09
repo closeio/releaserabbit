@@ -6,9 +6,16 @@ In one simple command, ReleaseRabbit bumps version number in your project, pushe
 
 # Usage
 
-```
+```shell
 $ cd myproject
+
 $ releaserabbit 1.2.3
+# OR
+$ releaserabbit patch
+# OR
+$ releaserabbit minor
+# OR
+$ releaserabbit major
 ```
 
 # Setup
