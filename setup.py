@@ -15,7 +15,7 @@ setuptools.setup(
     description="Bump release versions and make releases quickly",
     url="https://github.com/closeio/releaserabbit",
     packages=setuptools.find_packages(),
-    install_requires=[],
+    install_requires=['twine'],
     classifiers=[
         'Intended Audience :: Developers',
         "Programming Language :: Python :: 3",

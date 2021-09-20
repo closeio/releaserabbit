@@ -1,3 +1,4 @@
+import glob
 import io
 import re
 import subprocess
@@ -72,7 +73,8 @@ def tag(version, message):
 
 
 def build_and_upload():
-    sh('python', 'setup.py', 'sdist', 'upload')
+    sh('python', 'setup.py', 'sdist')
+    sh('twine', 'upload', *glob.glob('dist/*'))
     sh('git', 'push')
     sh('git', 'push', '--tags')
 
