@@ -19,11 +19,11 @@ def sh(*args):
 
 def compile_string_decl_regex(var_name):
     return re.compile(
-        r'^({}\s*=\s*)([\'"])(.*?)\2$'.format(var_name), re.MULTILINE
+        fr'^({var_name}\s*=\s*)([\'"])(.*?)\2$', re.MULTILINE
     )
 
 
-class VersionFile(object):
+class VersionFile:
     def __init__(self, file_name, version_re):
         self.file_name = file_name
         self.version_re = version_re
@@ -34,7 +34,7 @@ class VersionFile(object):
     def replace_version(self, new_version):
         with io.open(self.file_name, "rt", encoding="utf8") as f:
             new_content = self.version_re.sub(
-                r'\g<1>\g<2>{}\g<2>'.format(new_version), f.read()
+                fr'\g<1>\g<2>{new_version}\g<2>', f.read()
             )
 
         with io.open(self.file_name, "wt", encoding="utf8") as f:
@@ -69,7 +69,7 @@ def find_string_declaration(python_file, string_decl_re):
 
 
 def tag(version, message):
-    sh('git', 'tag', '-a', 'v{}'.format(version), '-m', message)
+    sh('git', 'tag', '-a', f'v{version}', '-m', message)
 
 
 def build_and_upload():
@@ -137,9 +137,7 @@ def release_with_version(requested_version):
     if requested_version.startswith('v'):
         requested_version = requested_version[1:]
     old_version, ver_file = prepare()
-    assert old_version != requested_version, 'Already on {}'.format(
-        requested_version
-    )
+    assert old_version != requested_version, f'Already on {requested_vesrion}'
 
     version = get_new_version(old_version, requested_version)
 
@@ -151,7 +149,7 @@ def release_with_version(requested_version):
     assert (
         get_setup_version() == ver_file.get_version()
     ), 'Setup.py version does not match after update'
-    message = 'Version bump to v{}'.format(version)
+    message = f'Version bump to v{version}'
 
     sh('git', 'add', ver_file.file_name)
     sh('git', 'commit', '-m', message)
@@ -159,12 +157,12 @@ def release_with_version(requested_version):
     tag(version, message)
     build_and_upload()
 
-    print('Updated version to {}.'.format(version))
+    print(f'Updated version to {version}.')
 
 
 def main():
     if len(sys.argv) != 2:
-        print('Usage: {} new_version'.format(sys.argv[0]))
+        print(f'Usage: {sys.argv[0]} new_version')
         sys.exit(1)
     try:
         release_with_version(sys.argv[1])
