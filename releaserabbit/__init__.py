@@ -23,7 +23,7 @@ def compile_string_decl_regex(var_name):
     )
 
 
-class VersionFile(object):
+class VersionFile:
     def __init__(self, file_name, version_re):
         self.file_name = file_name
         self.version_re = version_re
