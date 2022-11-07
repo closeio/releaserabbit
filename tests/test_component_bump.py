@@ -10,4 +10,4 @@ def test_component_bump():
     assert get_new_version('1.2.3', 'major') == '2.0.0'
     assert get_new_version('81.999.50', 'minor') == '81.1000.0'
     with pytest.raises(ValueError):
-        assert get_new_version('80.999.50', 'nonsense') == '81.1000.0'
+        get_new_version('80.999.50', 'nonsense')

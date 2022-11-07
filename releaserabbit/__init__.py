@@ -73,10 +73,14 @@ def tag(version, message):
 
 
 def build_and_upload():
+    # We want to release at the very end. That ensures that whatever
+    # we release is already properly tracked in the git remote.
+    # Otherwise, changes in the git remote could prevent us from
+    # pushing the exact changes we released to PyPI.
     sh('python', 'setup.py', 'sdist')
-    sh('twine', 'upload', *glob.glob('dist/*'))
     sh('git', 'push')
     sh('git', 'push', '--tags')
+    sh('twine', 'upload', *glob.glob('dist/*'))
 
 
 def prepare() -> Tuple[str, VersionFile]:
@@ -87,7 +91,12 @@ def prepare() -> Tuple[str, VersionFile]:
         len(get_output('git', 'status', '-uno', '--porcelain=2').splitlines())
         == 0
     ), 'Working directory is not clean'
-    sh('git', 'pull')
+
+    sh('git', 'fetch', 'origin' 'master')
+    assert get_output('git', 'rev-parse', 'HEAD') == get_output(
+        'git', 'rev-parse', 'refs/remotes/origin/master'
+    ), 'The branch must be up to date with origin'
+
     ver_file = get_version_file()
     assert ver_file, 'No VERSION_FILE defined in setup.py'
     old_file_version = ver_file.get_version()
