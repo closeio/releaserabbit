@@ -92,7 +92,7 @@ def prepare() -> Tuple[str, VersionFile]:
         == 0
     ), 'Working directory is not clean'
 
-    sh('git', 'fetch', 'origin' 'master')
+    sh('git', 'fetch', 'origin', 'master')
     assert get_output('git', 'rev-parse', 'HEAD') == get_output(
         'git', 'rev-parse', 'refs/remotes/origin/master'
     ), 'The branch must be up to date with origin'
